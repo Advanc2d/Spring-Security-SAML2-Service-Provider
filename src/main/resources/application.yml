@@ -1,6 +1,8 @@
 spring:
   application:
     name: SP
+  thymeleaf:
+    prefix: classpath:/templates/
   security:
     saml2:
       relyingparty:

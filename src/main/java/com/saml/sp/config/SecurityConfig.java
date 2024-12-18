@@ -41,7 +41,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(
                         "/saml2/service-provider-metadata/**",      // metadata url
                         "/login/**", "/login",                      // login urzjal
-                        "/logout", "/logout/saml2/**"               // logout url
+                        "/logout", "/logout/saml2/**",              // logout url
+                        "/"
                 )
                 .permitAll()
                 .anyRequest().authenticated();
@@ -59,7 +60,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private void addSaml2MetadataFilter(HttpSecurity http) {
         Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver =
                 new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository);
-
 
         Saml2MetadataFilter metadataFilter = new Saml2MetadataFilter(
                 relyingPartyRegistrationResolver, new OpenSamlMetadataResolver()
