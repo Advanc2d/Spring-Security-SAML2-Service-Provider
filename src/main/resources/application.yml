@@ -1,3 +1,32 @@
 spring:
   application:
     name: SP
+  security:
+    saml2:
+      relyingparty:
+        registration:
+          registrationId:
+            entity-id: "http://localhost/sp"
+            assertingparty:
+              entity-id: <IDP Entity ID>
+              # IDP Response Or Assertion Signing Public Cert(X.509) file path
+              verification:
+                credentials:
+                  - certificate-location: classpath:/sso/local/saml.cert
+              # saml request endpoint
+              singlesignon:
+                url: <IDP SSO ENDPOINT> ex) http(s)://idp.dev.com/idp/sso/redirect/
+                binding: REDIRECT
+                # whether saml request(authnrequest) is signed or not
+                sign-request: false
+
+server:
+  port: 80
+  servlet:
+    session:
+      timeout: 30m
+
+logging:
+  level:
+    org.springframework.security.saml2: DEBUG
+    org.springframework.security: DEBUG
