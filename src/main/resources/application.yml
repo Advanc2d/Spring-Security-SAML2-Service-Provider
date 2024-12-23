@@ -9,12 +9,20 @@ spring:
         registration:
           registrationId:
             entity-id: "http://localhost/sp"
+            singlelogout:
+              url: "{baseUrl}/logout/saml2/slo"
+              binding: POST
             assertingparty:
               entity-id: <IDP Entity ID>
               # IDP Response Or Assertion Signing Public Cert(X.509) file path
               verification:
                 credentials:
                   - certificate-location: classpath:/sso/local/saml.cert
+              # slo endpoint
+              singlelogout:
+                url: https://edu_idp.bubblecon.io/idp/slo/post/
+                # url: <IDP SLO ENDPOINT> ex) http(s)://idp.dev.com/idp/slo/post
+                binding: POST
               # saml request endpoint
               singlesignon:
                 url: <IDP SSO ENDPOINT> ex) http(s)://idp.dev.com/idp/sso/redirect/
