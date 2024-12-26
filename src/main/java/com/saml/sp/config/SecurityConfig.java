@@ -77,7 +77,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public Saml2LogoutRequestResolver openSaml4LogoutRequestResolver() {
-        return new OpenSaml4LogoutRequestResolver(new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository));
+        OpenSaml4LogoutRequestResolver openSaml4LogoutRequestResolver
+                = new OpenSaml4LogoutRequestResolver(new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository));
+
+        openSaml4LogoutRequestResolver.setParametersConsumer(parameters -> {
+            LogoutRequest logoutRequest = parameters.getLogoutRequest();
+            logoutRequest.setSignature(null);
+            logoutRequest.setIssueInstant(Instant.now());
+        });
+
+        return openSaml4LogoutRequestResolver;
     }
 
     @Bean
