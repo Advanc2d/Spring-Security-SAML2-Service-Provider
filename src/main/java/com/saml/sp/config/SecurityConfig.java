@@ -7,12 +7,15 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.saml2.provider.service.authentication.logout.OpenSamlLogoutRequestValidator;
+import org.springframework.security.saml2.provider.service.authentication.logout.OpenSamlLogoutResponseValidator;
 import org.springframework.security.saml2.provider.service.metadata.OpenSamlMetadataResolver;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
 import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilter;
+import org.springframework.security.saml2.provider.service.web.authentication.logout.HttpSessionLogoutRequestRepository;
 import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutRequestResolver;
 import org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml4LogoutResponseResolver;
 import org.springframework.security.saml2.provider.service.web.authentication.logout.Saml2LogoutRequestResolver;
@@ -46,9 +49,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private void configureAuthorization(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .antMatchers(
-                        "/saml2/service-provider-metadata/**",      // metadata url
-                        "/login/**", "/login",                      // login urzjal
-                        "/logout", "/logout/saml2/**",              // logout url
+                        "/saml2/service-provider-metadata/**",
+                        "/login/**", "/login",
+                        "/logout",  "/logout/saml2/**",
                         "/"
                 )
                 .permitAll()
@@ -68,9 +71,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.saml2Logout(saml2 ->
                 saml2.logoutRequest(request ->
                                 request.logoutRequestResolver(openSaml4LogoutRequestResolver())
+                                        .logoutRequestRepository(new HttpSessionLogoutRequestRepository())
+                                        .logoutRequestValidator(new OpenSamlLogoutRequestValidator())
                         )
                         .logoutResponse(response ->
                                 response.logoutResponseResolver(openSaml4LogoutResponseResolver())
+                                        .logoutResponseValidator(new OpenSamlLogoutResponseValidator())
                         )
         );
     }
