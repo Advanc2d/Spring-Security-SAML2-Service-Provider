@@ -9,11 +9,14 @@ spring:
         registration:
           registrationId:
             entity-id: "http://localhost/sp"
+            signing:
+              credentials:
+                - private-key-location: "classpath:credentials/private.key"
+                  certificate-location: "classpath:credentials/public.cer"
             singlelogout:
               url: "{baseUrl}/logout/saml2/slo"
               binding: POST
             assertingparty:
-              entity-id: <IDP Entity ID>
               # IDP Response Or Assertion Signing Public Cert(X.509) file path
               verification:
                 credentials:
