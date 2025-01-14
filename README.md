@@ -14,23 +14,21 @@
 
 ## 서비스 제공자(SP) 설정
 1. Identity Provider의 메타데이터 설정
+   - application.yml 
 ```yaml
 spring:
   security:
     saml2:
       relyingparty:
         registration:
-          #{registrationId}:
+          {registrationId}:         # 설정할 SP Alias Name
             entity-id: sp
-            signing:
-              credentials:
-                - private-key-location: classpath:local.key
-                  certificate-location: classpath:local.crt
-            singlelogout:
-              binding: POST
-              response-url: "{baseUrl}/logout/saml2/slo"
             assertingparty:
-              metadata-uri: "classpath:metadata/metadata-idp.xml"
+              entity-id: <IDP Entity ID>
+              # IDP Response Or Assertion Signing Public Cert(X.509) file path
+              verification:
+                credentials:
+                  - certificate-location: classpath:/sso/local/saml.cert
               singlesignon:
                 url: <IDP SSO ENDPOINT> ex) http(s)://idp.dev.com/idp/sso/redirect/
                 binding: REDIRECT
@@ -38,6 +36,59 @@ spring:
                 sign-request: false
 ```
 
+2. Security Filter Chain 설정
+
+```java
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
+import org.springframework.security.saml2.provider.service.servlet.filter.Saml2WebSsoAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private final RelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
+
+    public SecurityConfig(RelyingPartyRegistrationRepository relyingPartyRegistrationRepository) {
+        this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        configureCsrfDisable(http);
+        configureAuthorization(http);
+        configureSaml2Login(http);
+    }
+
+    private void configureCsrfDisable(HttpSecurity http) throws Exception {
+        http.csrf().disable();
+    }
+
+    private void configureAuthorization(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .antMatchers(
+                        "/saml2/service-provider-metadata/**",
+                        "/login/**", "/login",
+                        "/logout",  "/logout/saml2/**",
+                        "/"
+                )
+                .permitAll()
+                .anyRequest().authenticated();
+    }
+
+    private void configureSaml2Login(HttpSecurity http) throws Exception {
+        http.saml2Login()
+                .failureHandler((request, response, exception) -> {
+                    System.out.println("SAML authentication failed: " + exception.getMessage());
+                    exception.printStackTrace();
+                    response.sendRedirect("/error");
+                });
+    }
+}
+```
 
 ## 트러블슈팅
 - SLO [spring-security-saml2-service-provider - opensaml 버전 문제](https://github.com/spring-projects/spring-security/issues/10539)
