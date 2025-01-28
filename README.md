@@ -61,6 +61,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         configureCsrfDisable(http);
         configureAuthorization(http);
         configureSaml2Login(http);
+        addSaml2MetadataFilter(http);
     }
 
     private void configureCsrfDisable(HttpSecurity http) throws Exception {
@@ -87,6 +88,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     response.sendRedirect("/error");
                 });
     }
+
+   private void addSaml2MetadataFilter(HttpSecurity http) {
+      Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver =
+              new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository);
+
+      Saml2MetadataFilter metadataFilter = new Saml2MetadataFilter(
+              relyingPartyRegistrationResolver, new OpenSamlMetadataResolver()
+      );
+
+      http.addFilterBefore(metadataFilter, Saml2WebSsoAuthenticationFilter.class);
+   }
 }
 ```
 
